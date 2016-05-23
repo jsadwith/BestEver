@@ -30,6 +30,7 @@ type Database struct {
     Username    string
     Password    string
     Name        string
+    Log         bool
 }
 
 type Log struct {
