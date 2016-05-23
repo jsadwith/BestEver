@@ -17,6 +17,7 @@ import (
     "net/http"
 
     "github.com/jsadwith/BestEver/models"
+    "github.com/gorilla/mux"
 )
 
 // Add Category
@@ -54,6 +55,24 @@ func AddCategory(w http.ResponseWriter, r *http.Request) (int, error) {
 
     // Return entity as JSON
     if err := json.NewEncoder(w).Encode(category); err != nil {
+        return 500, err
+    }
+
+    return 200, nil
+}
+
+func SearchCategories(w http.ResponseWriter, r *http.Request) (int, error) {
+
+    vars := mux.Vars(r)
+
+    // Get all categories
+    categories, err := models.SearchCategories(vars["query"])
+    if err != nil {
+        return 500, err
+    }
+
+    // Return entity as JSON
+    if err := json.NewEncoder(w).Encode(categories); err != nil {
         return 500, err
     }
 

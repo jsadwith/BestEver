@@ -30,6 +30,8 @@ func Connect() *gorm.DB {
         " sslmode=disable" +
         " password=" + config.Conf.Database.Password)
 
+    db.LogMode(config.Conf.Database.Log)
+
     if err != nil {
         panic("Failed to connect to db")
     }

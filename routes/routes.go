@@ -30,18 +30,25 @@ var routes = Routes {
         "/api/category",
         api.AddCategory,
     },
-    // Route {
-    //     "Add a new item to a category",
-    //     "POST",
-    //     "/api/item/add",
-    //     api.AddItem,
-    // },
     Route {
         "Get a category",
         "GET",
         "/api/category/{categoryId}",
         api.GetCategory,
     },
+    Route {
+        "Search categories",
+        "GET",
+        "/api/category/search/{query}",
+        api.SearchCategories,
+    },
+    // Route {
+    //     "Add a new item to a category",
+    //     "POST",
+    //     "/api/item/add",
+    //     api.AddItem,
+    // },
+
     // Route {
     //     "Get a category with items",
     //     "GET",

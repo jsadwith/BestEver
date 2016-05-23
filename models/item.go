@@ -18,8 +18,8 @@ type Item struct {
     gorm.Model    // Gets ID, CreatedAt, UpdatedAt, DeletedAt fields
     Name          string     `json:"name"`
     Description   string     `json:"description"`
-    User          User       `json:"user"`
-    Category      Category   `json:"category"`
+    User          User       `json:"user,omitempty"`
+    CategoryID    uint       `json:"category"`
 }
 
 // Add Item
