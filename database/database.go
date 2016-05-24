@@ -38,3 +38,13 @@ func Connect() *gorm.DB {
 
     return db
 }
+
+// Expand the query to additional resources
+func Expand(query *gorm.DB, resources []string) *gorm.DB {
+    for i := range resources {
+        if resources[i] != "" {
+            query = query.Preload(resources[i])
+        }
+    }
+    return query
+}

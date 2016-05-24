@@ -15,6 +15,7 @@ import (
     "io/ioutil"
     "log"
     "net/http"
+    "strings"
 
     "github.com/jsadwith/BestEver/models"
     "github.com/gorilla/mux"
@@ -61,12 +62,40 @@ func AddCategory(w http.ResponseWriter, r *http.Request) (int, error) {
     return 200, nil
 }
 
+// Get category
+func GetCategory(w http.ResponseWriter, r *http.Request) (int, error) {
+
+    vars := mux.Vars(r)
+
+    // Get related resources
+    resourcesGet := r.URL.Query().Get("expand")
+    resources := strings.Split(resourcesGet, ",")
+
+    // Get category
+    category, err := models.GetCategory(vars["categoryId"], resources)
+    if err != nil {
+        return 500, err
+    }
+
+    // Return entity as JSON
+    if err := json.NewEncoder(w).Encode(category); err != nil {
+        return 500, err
+    }
+
+    return 200, nil
+}
+
+// Search categories
 func SearchCategories(w http.ResponseWriter, r *http.Request) (int, error) {
 
     vars := mux.Vars(r)
 
-    // Get all categories
-    categories, err := models.SearchCategories(vars["query"])
+    // Get related resources
+    resourcesGet := r.URL.Query().Get("expand")
+    resources := strings.Split(resourcesGet, ",")
+
+    // Search
+    categories, err := models.SearchCategories(vars["query"], resources)
     if err != nil {
         return 500, err
     }
@@ -83,6 +112,3 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) (int, error) {
     return 200, nil
 }
 
-func GetCategory(w http.ResponseWriter, r *http.Request) (int, error) {
-    return 200, nil
-}

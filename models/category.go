@@ -27,7 +27,7 @@ type Category struct {
 
 // Add Category
 func AddCategory(category Category) (Category, error) {
-    // Add Item to DB
+
     db := database.DbConnection
 
     // Check if category exists
@@ -48,12 +48,19 @@ func AddCategory(category Category) (Category, error) {
 }
 
 // Retrieve a category
-func GetCategory(id uint) (Category, error) {
+func GetCategory(id string, resources []string) (Category, error) {
+
     var category Category
 
     // Load a category
     db := database.DbConnection
-    if err := db.Where("ID = ?", id).First(&category).Error; err != nil {
+    query := db
+    query = query.Where("ID = ?", id)
+
+    // Expand related resources
+    query = database.Expand(query, resources)
+
+    if err := query.First(&category).Error; err != nil {
         errorStr := fmt.Sprintf("Error getting category (id=%s): %s", id, err)
         return Category{}, errors.New(errorStr)
     }
@@ -62,21 +69,22 @@ func GetCategory(id uint) (Category, error) {
 }
 
 // Search categories by name
-func SearchCategories(name string) ([]Category, error) {
-    var categories []Category
-    var err error
+func SearchCategories(name string, resources []string) ([]Category, error) {
 
-    // Load all categories with items
+    var categories []Category
+
     db := database.DbConnection
+    query := db
 
     // Search for category by name (must use lower() for case insensitive)
     if name != "" && name != "all" {
-        err = db.Where("LOWER(name) LIKE LOWER(?)", "%" + name + "%").Find(&categories).Error
-    } else { // If no search supplied, just grab all
-        err = db.Preload("Items").Find(&categories).Error
+        query = query.Where("LOWER(name) LIKE LOWER(?)", "%" + name + "%")
     }
 
-    if err != nil {
+    // Expand related resources
+    query = database.Expand(query, resources)
+
+    if err := query.Find(&categories).Error; err != nil {
         errorStr := fmt.Sprintf("Error searching categories: %s", err)
         return []Category{}, errors.New(errorStr)
     }
