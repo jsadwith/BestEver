@@ -1,35 +1,42 @@
-/*
-
-BestEver Prototype
-
-*/
+// package Main - BestEver prototype
 
 package main
 
 import (
-    "log"
-    "net/http"
+	"flag"
+	"log"
+	"net/http"
+	"os"
 
-    "github.com/jsadwith/BestEver/config"
-    "github.com/jsadwith/BestEver/database"
-    "github.com/jsadwith/BestEver/models"
-    "github.com/jsadwith/BestEver/routes"
+	"github.com/jsadwith/BestEver/database"
+	"github.com/jsadwith/BestEver/models"
+	"github.com/jsadwith/BestEver/routes"
+)
+
+var (
+	port = flag.String(
+		"PORT",
+		os.Getenv("PORT"),
+		"",
+	)
 )
 
 func main() {
+	// Register routes, ensuring trailing slashes redirect to route - /route/ -> /route
+	router := router.NewRouter()
 
-    // Load config
-    config.Load()
+	err := database.Connect()
 
-    // Register routes, ensuring trailing slashes redirect to route - /route/ -> /route
-    router := router.NewRouter()
+	if err != nil {
+		log.Fatalf("Error connecting to Postgres: %s", err)
+	}
 
-    // Setup database connection and tables
-    database.DbConnection = database.Connect()
-    database.DbConnection.CreateTable(&models.Category{})
-    database.DbConnection.CreateTable(&models.Item{})
-    database.DbConnection.CreateTable(&models.User{})
+	// Table creation and auto migrate
+	database.Client.CreateTable(&models.Category{})
+	database.Client.CreateTable(&models.Item{})
+	database.Client.CreateTable(&models.User{})
+	database.Client.AutoMigrate(&models.Category{}, &models.Item{}, &models.User{})
 
-    log.Printf("Serving on port " + config.Conf.App.Port)
-    log.Fatal(http.ListenAndServe(":" + config.Conf.App.Port, router))
+	log.Printf("Serving on port " + *port)
+	log.Fatal(http.ListenAndServe(":"+*port, router))
 }

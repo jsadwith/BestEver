@@ -9,42 +9,79 @@ Handles setup of database
 package database
 
 import (
-    "github.com/jsadwith/BestEver/config"
+	"flag"
+	"log"
+	"os"
+	"strconv"
 
-    "github.com/jinzhu/gorm"
-    _ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres" // Postgres dialect for gorm
+)
+
+// Client - Global DB connection
+var (
+	Client *gorm.DB
 )
 
 var (
-    DbConnection *gorm.DB
+	host = flag.String(
+		"DB_POSTGRES_HOST",
+		os.Getenv("DB_POSTGRES_HOST"),
+		"",
+	)
+	user = flag.String(
+		"DB_POSTGRES_USER",
+		os.Getenv("DB_POSTGRES_USER"),
+		"",
+	)
+	password = flag.String(
+		"DB_POSTGRES_PASSWORD",
+		os.Getenv("DB_POSTGRES_PASSWORD"),
+		"",
+	)
+	dbName = flag.String(
+		"DB_POSTGRES_NAME",
+		os.Getenv("DB_POSTGRES_NAME"),
+		"",
+	)
+	logMode = flag.String(
+		"DB_POSTGRES_LOG",
+		os.Getenv("DB_POSTGRES_LOG"),
+		"",
+	)
 )
 
-// Connect to the database
-// NOTE: Only supports Postgres at this time
-func Connect() *gorm.DB {
+// Connect - Connect to the database
+func Connect() error {
 
-    db, err := gorm.Open("postgres",
-        "host=" + config.Conf.Database.Host +
-        " user=" + config.Conf.Database.Username +
-        " dbname=" + config.Conf.Database.Name +
-        " sslmode=disable" +
-        " password=" + config.Conf.Database.Password)
+	connectionString := "host=" + *host +
+		" user=" + *user +
+		" dbname=" + *dbName +
+		" sslmode=disable" +
+		" password=" + *password
 
-    db.LogMode(config.Conf.Database.Log)
+	log.Printf("Connecting to %s", connectionString)
+	connection, err := gorm.Open("postgres", connectionString)
 
-    if err != nil {
-        panic("Failed to connect to db")
-    }
+	log.Printf("past connection")
+	logModeBool, _ := strconv.ParseBool(*logMode)
+	connection.LogMode(logModeBool)
 
-    return db
+	if err != nil {
+		panic("Failed to connect to db")
+	}
+
+	Client = connection
+
+	return nil
 }
 
-// Expand the query to additional resources
+// Expand - Expand the query to additional resources
 func Expand(query *gorm.DB, resources []string) *gorm.DB {
-    for i := range resources {
-        if resources[i] != "" {
-            query = query.Preload(resources[i])
-        }
-    }
-    return query
+	for i := range resources {
+		if resources[i] != "" {
+			query = query.Preload(resources[i])
+		}
+	}
+	return query
 }
